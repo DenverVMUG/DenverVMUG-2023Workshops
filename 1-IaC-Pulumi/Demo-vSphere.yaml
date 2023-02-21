@@ -1,0 +1,18 @@
+#Export Creds first: >
+#PowerShell
+#$env:VSPHERE_USER = 'XXXXXXXXXXXX'
+#$env:VSPHERE_PASSWORD = 'YYYYYYYYYYYY'
+#$env:VSPHERE_SERVER = 'ZZZZZZZZZZZZ'
+#$env:VSPHERE_ALLOW_UNVERIFIED_SSL = true
+
+#Shell
+#export VSPHERE_USER=XXXXXXXXXXXX
+#export VSPHERE_PASSWORD=YYYYYYYYYYYY
+#export VSPHERE_SERVER=ZZZZZZZZZZZZ
+#export VSPHERE_ALLOW_UNVERIFIED_SSL=true
+
+name: simple-yaml
+runtime: yaml
+resources:
+  resourceGroup:
+    type: azure-native:resources:ResourceGroup

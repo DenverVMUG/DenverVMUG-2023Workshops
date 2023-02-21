@@ -1,0 +1,121 @@
+name: pulumi_vSphere
+runtime: yaml
+description: A minimal Pulumi YAML program with the classic Azure provider
+outputs:
+  # Export the connection string for the storage account
+  datacenter: ${datacenter}
+  datastore: ${datastore}
+  network: ${network}
+  resourcepool: ${resourcepool}
+  #template: ${template}
+  finalVM: ${virtualmachine}
+  defaultIp: ${virtualmachine.defaultIpAddress}
+
+variables:
+
+  #Set values for substitution
+  vmName: 'VMUG-Demo-Ubuntu'
+  datacenterName: 'CastleRock'
+  datastoreName: 'ESXi_AllFlash'
+  folder: '/CastleRock/vm/VMUG-Demo'
+
+  #Get information from environment
+  datacenter:
+    fn::invoke:
+      function: vsphere:getDatacenter
+      arguments:
+        name: ${datacenterName}
+  datastore:
+    fn::invoke:
+      function: vsphere:getDatastore
+      arguments:
+        name: ${datastoreName}
+        datacenterId: ${datacenter.id}
+  network:
+    fn::invoke:
+      function: vsphere:getNetwork
+      arguments:
+        name: 'CORE-Prod'
+        datacenterId: ${datacenter.id}
+  resourcepool:
+    fn::invoke:
+      function: vsphere:getResourcePool
+      arguments:
+        name: 'Physical'
+        datacenterId: ${datacenter.id}
+  template:
+    fn::invoke:
+      function: vsphere:getVirtualMachine
+      arguments:
+        name: linux-ubuntu-22.04-lts-main
+        datacenterId: ${datacenter.id}
+  category:
+    fn::invoke:
+      function: vsphere:getTagCategory
+      arguments:
+        name: 'Demo'
+  tag:
+    fn::invoke:
+      function: vsphere:getTag
+      arguments:
+        name: 'VMUGDemo'
+        categoryId: ${category.id}
+
+resources:
+  virtualmachine:
+    type: vsphere:VirtualMachine
+    properties:
+      clone:
+        templateUuid: ${template.uuid}
+      resourcePoolId: ${resourcepool.id}
+      cpuHotAddEnabled: false
+      cpuHotRemoveEnabled: false
+      datastoreId: ${datastore.id}
+      disks:
+      - datastoreId: ${datastore.id}
+        label: 'Hard disk 1'
+        thinProvisioned: true
+        size: 50
+      folder: ${folder}
+      guestId: ubuntu64Guest
+      hardwareVersion: 13
+      memory: 3072
+      memoryHotAddEnabled: false
+      name: ${vmName}
+      networkInterfaces:
+      - networkId: ${network.id}
+        adapterType: 'vmxnet3'
+      numCoresPerSocket: 1
+      numCpus: 2
+      scsiType: 'lsilogic'
+      tags:
+      - ${tag.id}
+      #customAttributes Map<String>
+#extraConfig Map<String>
+#ovfDeploy Property Map
+
+
+#   const vm = new vsphere.VirtualMachine("vm", {
+#     resourcePoolId: poolId,
+#     datastoreId: datastoreId,
+#     folder: "Workloads",
+#     numCpus: 2,
+#     memory: 2048,
+#     guestId: template.then(t => t.guestId),
+#     networkInterfaces: [{
+#         networkId: networkId,
+#         adapterType: template.then(t => t.networkInterfaceTypes[0]),
+#     }],
+#     disks: [{
+#         label: "disk0",
+#         size: template.then(t => t.disks[0].size),
+#         eagerlyScrub: template.then(t => t.disks[0].eagerlyScrub),
+#         thinProvisioned: template.then(t => t.disks[0].thinProvisioned),
+#     }],
+#     clone: {
+#         templateUuid: template.then(t => t.id),
+#     },
+# });
+#
+# export let defaultIp = vm.defaultIpAddress;account:
+
